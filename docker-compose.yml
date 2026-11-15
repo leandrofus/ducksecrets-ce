@@ -14,7 +14,7 @@
 
 services:
   ducksecrets:
-    image: ghcr.io/leandrofus/ducksecrets-ce:${DUCKSECRETS_VERSION:-latest}
+    image: system4us/ducksecrets:${DUCKSECRETS_VERSION:-latest}
     restart: unless-stopped
     ports:
       - "${DUCKSECRETS_PORT:-8080}:8080"

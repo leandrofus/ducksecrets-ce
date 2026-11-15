@@ -77,7 +77,7 @@ docker compose up -d
 docker compose --profile postgres up -d
 ```
 
-> Pulls the prebuilt multi-arch `ghcr.io/leandrofus/ducksecrets-ce:latest` image, persists data in `/data`, and auto-provisions self-signed HTTPS by default.
+> Pulls the prebuilt multi-arch `system4us/ducksecrets:latest` image, persists data in `/data`, and auto-provisions self-signed HTTPS by default.
 
 ### First Login & Reverse Proxy
 
