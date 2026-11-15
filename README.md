@@ -50,15 +50,15 @@ Download installers and static binaries from the [**Releases page**](https://git
 ### Debian / Ubuntu (`.deb`)
 
 ```sh
-curl -fsSLO https://github.com/leandrofus/ducksecrets-ce/releases/latest/download/ducksecrets-0.2.2-linux-amd64.deb
-sudo dpkg -i ducksecrets-0.2.2-linux-amd64.deb
+curl -fsSLO https://github.com/leandrofus/ducksecrets-ce/releases/latest/download/ducksecrets-0.2.3-linux-amd64.deb
+sudo dpkg -i ducksecrets-0.2.3-linux-amd64.deb
 sudo systemctl enable --now ducksecrets
 ```
 
 ### RHEL / Rocky / Alma / Fedora (`.rpm`)
 
 ```sh
-sudo dnf install -y https://github.com/leandrofus/ducksecrets-ce/releases/latest/download/ducksecrets-0.2.2-linux-amd64.rpm
+sudo dnf install -y https://github.com/leandrofus/ducksecrets-ce/releases/latest/download/ducksecrets-0.2.3-linux-amd64.rpm
 sudo systemctl enable --now ducksecrets
 ```
 
@@ -66,7 +66,7 @@ sudo systemctl enable --now ducksecrets
 
 ### Windows (`.msi`)
 
-Download `ducksecrets-0.2.2-windows-amd64.msi` from [**Releases**](https://github.com/leandrofus/ducksecrets-ce/releases/latest) to install `ducksecrets.exe` and `ducksecretsd.exe` into `C:\Program Files\DuckSecrets`.
+Download `ducksecrets-0.2.3-windows-amd64.msi` from [**Releases**](https://github.com/leandrofus/ducksecrets-ce/releases/latest) to install `ducksecrets.exe` and `ducksecretsd.exe` into `C:\Program Files\DuckSecrets`.
 
 ### Docker / Docker Compose
 
