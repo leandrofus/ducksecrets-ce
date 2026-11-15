@@ -287,7 +287,7 @@ export function ShareView() {
               {bundle?.environment && <Tag>{bundle.environment}</Tag>}
             </div>
             <p style={{ margin: '2px 0 0', fontSize: '0.85rem', color: 'var(--muted)' }}>
-              {t('Zero-Knowledge End-to-End Encrypted')}
+              {t('End-to-End Encrypted')}
             </p>
           </div>
         </div>
@@ -597,7 +597,7 @@ export function ShareView() {
               }}
             >
               <ShieldCheck size={14} color="#10b981" />
-              <span>{t('Decrypted locally in your browser using Web Crypto AES-256-GCM.')}</span>
+              <span>{t('Decrypted in your browser.')}</span>
             </div>
           </div>
         ) : (
@@ -713,7 +713,7 @@ export function ShareView() {
               }}
             >
               <Lock size={12} style={{ display: 'inline', marginRight: '3px', verticalAlign: 'text-bottom' }} />
-              {t('Zero-Knowledge: The server never receives or stores your decryption key.')}
+              {t('The server only stores encrypted data; the key stays in your link.')}
             </p>
           </div>
         )}

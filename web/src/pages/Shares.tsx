@@ -306,10 +306,10 @@ export function Shares() {
               >
                 <strong style={{ color: 'var(--text)', display: 'block', marginBottom: '0.25rem' }}>
                   <Lock size={13} style={{ display: 'inline', marginRight: '4px', verticalAlign: 'text-bottom' }} />
-                  {t('Zero-Knowledge Security')}
+                  {t('Client-Side Encryption')}
                 </strong>
                 {t(
-                  'The decryption key is contained strictly within the URL fragment after #k=. Web browsers do not transmit fragments to HTTP servers, guaranteeing that DuckSecrets servers never possess or see the decryption key.'
+                  'The decryption key stays in the #k= URL fragment, so the browser never sends it to the server.'
                 )}
               </div>
 

@@ -81,13 +81,13 @@ var catalogDefs = []FeatureInfo{
 		ID:          FeatureSitesUnlimited,
 		Name:        "Unlimited Network Sites",
 		MinEdition:  EditionBusiness,
-		Description: "Unlimited high-availability private network tunnel connectors.",
+		Description: "Unlimited private network tunnel connectors.",
 	},
 	{
 		ID:          FeatureApprovals,
 		Name:        "Approval Workflows (Two-Person Rule)",
 		MinEdition:  EditionBusiness,
-		Description: "Require peer review before sensitive production secret changes take effect.",
+		Description: "Require approval before sensitive secret changes take effect.",
 	},
 	{
 		ID:          FeatureSSOSAML,

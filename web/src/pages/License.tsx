@@ -1,13 +1,102 @@
 import { t } from '../i18n'
 import { useState } from 'react'
 import type { FormEvent } from 'react'
-import { KeyRound, CheckCircle2, AlertCircle, Lock, RefreshCw, Trash2, Server, DownloadCloud, Shield } from 'lucide-react'
+import { KeyRound, CheckCircle2, AlertCircle, Lock, RefreshCw, Trash2, Server, DownloadCloud, Shield, ShieldCheck, ArrowRight } from 'lucide-react'
 import { api } from '../lib/api'
 import type { LicenseStatus, UpdateStatus, ApplyUpdateResponse, TLSStatus } from '../lib/api'
 import { invalidate, useResource } from '../lib/store'
 import { Field } from '../ui/Field'
 import { Spinner, Tag } from '../ui/common'
 import { confirm, toast } from '../ui/overlays'
+
+export function LicenseOnboarding({ onDone }: { onDone: (skipped: boolean) => void }) {
+  const [token, setToken] = useState('')
+  const [busy, setBusy] = useState(false)
+  const [err, setErr] = useState('')
+
+  const activate = async (e: FormEvent) => {
+    e.preventDefault()
+    if (!token.trim() || busy) return
+    setBusy(true)
+    setErr('')
+    try {
+      await api.put<LicenseStatus>('/system/license', { token: token.trim() })
+      invalidate('/system/license')
+      onDone(false)
+    } catch (error: any) {
+      setErr(error?.message || String(error))
+    } finally {
+      setBusy(false)
+    }
+  }
+
+  const skipToCE = async () => {
+    if (busy) return
+    setBusy(true)
+    setErr('')
+    try {
+      await api.post<LicenseStatus>('/system/license/skip', {})
+      invalidate('/system/license')
+      onDone(true)
+    } catch (error: any) {
+      setErr(error?.message || String(error))
+    } finally {
+      setBusy(false)
+    }
+  }
+
+  return (
+    <div className="login">
+      <form className="login-card" style={{ width: 520, maxWidth: '100%' }} onSubmit={activate}>
+        <img className="brand-logo" style={{ width: 52, height: 52, alignSelf: 'center' }} src="/icon.svg" alt="" />
+        <h2 style={{ textAlign: 'center', margin: 0 }}>{t('Choose Your DuckSecrets Edition')}</h2>
+        <p className="muted" style={{ textAlign: 'center' }}>
+          {t('Community Edition is free under Apache-2.0. Enter a license key for Pro or Business, or continue with Community Edition.')}
+        </p>
+
+        <div style={{ border: '1px solid var(--border)', borderRadius: 8, padding: 14, background: 'var(--bg-subtle)', display: 'flex', flexDirection: 'column', gap: 6 }}>
+          <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 8 }}>
+            <strong>DuckSecrets Community Edition</strong>
+            <Tag tone="ok">{t('Free · Apache-2.0')}</Tag>
+          </div>
+          <span className="muted small">
+            {t('Secrets, dynamic credentials, rotation, audit log, sharing, and up to 2 network sites.')}
+          </span>
+        </div>
+
+        <Field
+          label={t('Signed License Token (dkl1...)')}
+          help={t('Optional. Checked locally offline.')}
+        >
+          <textarea
+            rows={3}
+            className="mono"
+            placeholder="dkl1...."
+            value={token}
+            onChange={(e) => setToken(e.target.value)}
+            disabled={busy}
+          />
+        </Field>
+
+        {err && <div className="alert alert-bad">{err}</div>}
+
+        <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
+          <button type="submit" className="btn btn-primary" disabled={busy || !token.trim()}>
+            <KeyRound size={15} /> {busy && token.trim() ? t('Verifying…') : t('Activate License')}
+          </button>
+          <button type="button" className="btn btn-ghost" disabled={busy} onClick={skipToCE}>
+            <ArrowRight size={15} /> {t('Skip — Continue with Community Edition')}
+          </button>
+        </div>
+
+        <div className="muted small" style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 6, textAlign: 'center' }}>
+          <ShieldCheck size={14} style={{ flexShrink: 0 }} />
+          <span>{t('You can upgrade to Pro or Business anytime later from Administration → License.')}</span>
+        </div>
+      </form>
+    </div>
+  )
+}
 
 function editionLabel(ed?: string) {
   if (ed === 'business') return 'Business'
@@ -69,7 +158,7 @@ export function License() {
     if (updating) return
     const ok = await confirm({
       title: t('Update DuckSecrets to {0}?', updateInfo?.latest_version || 'latest'),
-      body: t('Downloads the verified release binary from {0}, checks SHA256SUMS, and atomically replaces the executable on disk. A daemon restart is required afterward.', updateInfo?.repo || 'leandrofus/ducksecrets-ce'),
+      body: t('Downloads the latest release from {0}, verifies SHA256SUMS, and replaces the binary on disk. Restart the daemon afterward.', updateInfo?.repo || 'leandrofus/ducksecrets-ce'),
       confirm: t('Install Update'),
     })
     if (!ok) return
@@ -105,7 +194,7 @@ export function License() {
     if (busy) return
     const ok = await confirm({
       title: t('Remove commercial license?'),
-      body: t('The instance will revert to Community Edition (unlimited core secrets, dynamic engines, rotation, and up to 2 network sites).'),
+      body: t('Reverts to Community Edition (up to 2 network sites). Existing sites remain configured.'),
       danger: true,
       confirm: t('Remove License'),
     })
@@ -161,7 +250,7 @@ export function License() {
               <p className="muted small" style={{ margin: '8px 0 0' }}>
                 {status?.valid
                   ? t('Licensed to {0}{1}', status.customer || '—', status.org ? ` (${status.org})` : '')
-                  : t('Open-source core licensed under Apache-2.0. Offline Ed25519 licenses unlock commercial quotas and enterprise modules without telemetry or external network calls.')}
+                  : t('Community Edition (Apache-2.0). Paste a commercial license key below to unlock extra quotas and modules.')}
               </p>
               {status && (
                 <div className="muted small" style={{ marginTop: 10, display: 'flex', gap: 18, flexWrap: 'wrap', alignItems: 'center' }}>
@@ -202,7 +291,7 @@ export function License() {
             <>
               <Field
                 label={t('Signed License Token (dkl1...)')}
-                help={t('Verified locally against the embedded Ed25519 public key. No internet connection required.')}
+                help={t('Checked locally offline. No internet connection required.')}
               >
                 <textarea
                   rows={3}
@@ -336,7 +425,7 @@ export function License() {
             </div>
             <div style={{ marginTop: 10, display: 'flex', justifyContent: 'space-between', alignItems: 'center', gap: 12, flexWrap: 'wrap' }}>
               <span className="muted small">
-                {t('Custom certificates hot-reload live when HTTPS is active. Behind Nginx/Caddy/Traefik, set DUCKSECRETS_TLS_MODE=off and DUCKSECRETS_TRUSTED_PROXIES.')}
+                {t('Custom certificates reload live when HTTPS is enabled. Behind a reverse proxy, set DUCKSECRETS_TLS_MODE=off and DUCKSECRETS_TRUSTED_PROXIES.')}
               </span>
               <button type="submit" className="btn btn-primary btn-sm" disabled={tlsBusy || !certPEM.trim() || !keyPEM.trim()}>
                 <Shield size={14} /> {tlsBusy ? t('Applying…') : t('Save Custom Certificate')}

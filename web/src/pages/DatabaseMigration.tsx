@@ -83,13 +83,13 @@ export function DatabaseMigration() {
               <h3 style={{ margin: 0, display: 'flex', alignItems: 'center', gap: 8 }}>
                 {info?.engine === 'postgres' ? 'PostgreSQL' : 'SQLite (WAL mode)'}
                 <Tag tone={info?.engine === 'postgres' ? 'accent' : 'ok'}>
-                  {info?.engine === 'postgres' ? t('Production Engine') : t('Default Zero-Config')}
+                  {info?.engine === 'postgres' ? t('Active') : t('Embedded')}
                 </Tag>
               </h3>
               <p className="muted small" style={{ margin: '6px 0 0' }}>
                 {info?.engine === 'postgres'
-                  ? t('DuckSecrets is operating on high-availability PostgreSQL with concurrent advisory write locks.')
-                  : t('DuckSecrets started zero-config on embedded SQLite. You can migrate to PostgreSQL without downtime at any time.')}
+                  ? t('Running on PostgreSQL.')
+                  : t('Running on embedded SQLite. You can migrate to PostgreSQL at any time.')}
               </p>
             </div>
             <button className="icon-btn" title={t('Refresh')} onClick={() => invalidate('/system/database')}>
@@ -110,7 +110,7 @@ export function DatabaseMigration() {
             <h3 style={{ marginTop: 0 }}>{t('Migrate to PostgreSQL')}</h3>
             <p className="muted small" style={{ marginBottom: 16 }}>
               {t(
-                'Enter your target PostgreSQL connection string. The migration will initialize tables, stream all existing records, verify row counts, and hot-swap the daemon to PostgreSQL.'
+                'Enter the PostgreSQL connection string. DuckSecrets will create the schema, copy all rows, verify counts, and switch over.'
               )}
             </p>
 

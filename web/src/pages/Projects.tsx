@@ -1056,10 +1056,10 @@ function SecretModal({
             <div style={{ padding: '10px 14px', background: 'var(--bg-subtle)', borderRadius: 8, border: '1px solid var(--border)', fontSize: 11 }}>
               <div style={{ display: 'flex', alignItems: 'center', gap: 6, marginBottom: 4 }}>
                 <ShieldCheck size={14} style={{ color: '#10b981' }} />
-                <strong>{t('Zero-Knowledge Project Vault')}</strong>
+                <strong>{t('Project Encryption')}</strong>
               </div>
               <p className="muted small" style={{ margin: 0, lineHeight: 1.4 }}>
-                {t('Encrypted with AES-256-GCM using a unique per-project derivation key. Plain values are only decrypted in memory when revealed or exported.')}
+                {t('Secrets are encrypted with a per-project key and decrypted only when read or exported.')}
               </p>
             </div>
           </div>
@@ -1346,10 +1346,10 @@ function SecretVersionModal({
               <div style={{ padding: '10px 12px', background: 'var(--bg-subtle)', borderRadius: 8, border: '1px solid var(--border)', fontSize: 11 }}>
                 <div style={{ display: 'flex', alignItems: 'center', gap: 6, marginBottom: 4 }}>
                   <ShieldCheck size={14} style={{ color: '#10b981' }} />
-                  <strong>{t('Cryptographic Immutability')}</strong>
+                  <strong>{t('Version History')}</strong>
                 </div>
                 <p className="muted small" style={{ margin: 0, lineHeight: 1.4 }}>
-                  {t('Historic versions are append-only and cryptographically sealed with AES-256-GCM. Past versions cannot be tampered with or modified.')}
+                  {t('Previous versions stay read-only and encrypted in history.')}
                 </p>
               </div>
             </>
@@ -1986,7 +1986,7 @@ export function ShareBundleModal({
               <div style={{ padding: '10px 12px', background: 'var(--surface-2)', borderRadius: 8, border: '1px solid var(--border)', fontSize: 11, display: 'flex', alignItems: 'center', gap: 8 }}>
                 <ShieldCheck size={18} style={{ color: '#10b981', flexShrink: 0 }} />
                 <span className="muted small">
-                  {t('Encrypted client-side in your browser using AES-256-GCM. The decryption key never touches the server.')}
+                  {t('Encrypted in your browser before upload. The server never sees the decryption key.')}
                 </span>
               </div>
             </div>
@@ -2833,7 +2833,7 @@ function TokenModal({ projectId, envs, onClose }: { projectId: string; envs: Env
               <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 6 }}>
                 <span style={{ fontSize: 12, fontWeight: 600, display: 'flex', alignItems: 'center', gap: 6 }}>
                   <Flame size={14} style={{ color: singleUse ? '#ea580c' : 'var(--muted)' }} />
-                  {t('Single-Use Auto-Destruction')}
+                  {t('Single-Use Token')}
                 </span>
                 {singleUse && <Tag tone="bad" mono style={{ fontSize: 10 }}>{t('BURNS AFTER READ')}</Tag>}
               </div>
@@ -2842,7 +2842,7 @@ function TokenModal({ projectId, envs, onClose }: { projectId: string; envs: Env
                 <span>{t('Burn token permanently on first secrets read')}</span>
               </label>
               <p className="muted small" style={{ margin: 0, fontSize: 11, lineHeight: 1.4 }}>
-                {t('Ideal for container boots: secrets inject into process memory and the token is instantly burned in the database, preventing reuse if leaked.')}
+                {t('Useful for containers: the token expires after its first read so it cannot be reused.')}
               </p>
             </div>
 
@@ -3448,10 +3448,10 @@ function DynamicProviderModal({ projectId, envSlug, onClose }: { projectId: stri
             <div style={{ padding: '10px 14px', background: 'var(--bg-subtle)', borderRadius: 8, border: '1px solid var(--border)', fontSize: 11 }}>
               <div style={{ display: 'flex', alignItems: 'center', gap: 6, marginBottom: 4 }}>
                 <Database size={14} style={{ color: '#2563eb' }} />
-                <strong>{t('Zero-Standing Privileges (JIT)')}</strong>
+                <strong>{t('Temporary Credentials')}</strong>
               </div>
               <p className="muted small" style={{ margin: 0, lineHeight: 1.4 }}>
-                {t('Credentials are created on-the-fly and destroyed when their TTL expires. If grant execution fails, the temporary role is dropped immediately with automatic rollback.')}
+                {t('Credentials are created on demand and removed when their TTL expires. Failed grants roll back.')}
               </p>
             </div>
           </div>
@@ -3977,10 +3977,10 @@ function RotationPolicyModal({
             <div style={{ padding: '10px 14px', background: 'var(--bg-subtle)', borderRadius: 8, border: '1px solid var(--border)', fontSize: 11 }}>
               <div style={{ display: 'flex', alignItems: 'center', gap: 6, marginBottom: 4 }}>
                 <ShieldCheck size={14} style={{ color: '#10b981' }} />
-                <strong>{t('Automatic Rollback Safety Guarantee')}</strong>
+                <strong>{t('Automatic Rollback')}</strong>
               </div>
               <p className="muted small" style={{ margin: 0, lineHeight: 1.4 }}>
-                {t('If candidate credentials fail health checks, DuckSecrets instantly reverts the secret to the previous version, logs a failure audit event, and alerts your team without taking down your app.')}
+                {t('If the health check fails, DuckSecrets restores the previous secret and logs the failure.')}
               </p>
             </div>
           </div>
@@ -4075,7 +4075,7 @@ function SitesView({ projectId }: { projectId: string }) {
             </button>
           }
         >
-          {t('Register a site connector to deploy a lightweight agent (ducksecrets site run) inside private networks. It initiates an outbound reverse WebSocket tunnel to ducksecretsd for secure zero-inbound database access.')}
+          {t('Deploy an agent (ducksecrets site run) inside private networks. It opens an outbound tunnel to ducksecretsd with no inbound ports required.')}
         </Empty>
       ) : (
         <DataTable
@@ -4779,7 +4779,7 @@ function PolicyModal({
                   </Tag>
                 </div>
                 <p className="muted small" style={{ margin: '0 0 10px 0', fontSize: 11, lineHeight: 1.4 }}>
-                  {t('Temporary access auto-revokes automatically without manual administrator intervention.')}
+                  {t('Access is revoked automatically when the expiration time is reached.')}
                 </p>
                 <div style={{ display: 'flex', gap: 6, flexWrap: 'wrap' }}>
                   {TTLS.map((item) => (
@@ -4851,10 +4851,10 @@ function PolicyModal({
             <div style={{ padding: '10px 14px', background: 'var(--bg-subtle)', borderRadius: 8, border: '1px solid var(--border)', fontSize: 11 }}>
               <div style={{ display: 'flex', alignItems: 'center', gap: 6, marginBottom: 4 }}>
                 <ShieldCheck size={14} style={{ color: '#10b981' }} />
-                <strong>{t('Zero-Trust Policy Ledger')}</strong>
+                <strong>{t('Audit Trail')}</strong>
               </div>
               <p className="muted small" style={{ margin: 0, lineHeight: 1.4 }}>
-                {t('Access grants are cryptographically sealed in the project audit log with administrative identity, IP, and justification note.')}
+                {t('Access changes are recorded in the project audit log with user, IP address, and note.')}
               </p>
             </div>
           </div>

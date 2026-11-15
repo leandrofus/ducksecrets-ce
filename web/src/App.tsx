@@ -6,7 +6,7 @@ import { LogOut, UserCog, Users as UsersIcon } from 'lucide-react'
 import { ShieldCheck } from 'lucide-react'
 import { ScrollText } from 'lucide-react'
 import { api, setUnauthorizedHandler } from './lib/api'
-import type { Me } from './lib/api'
+import type { LicenseStatus, Me } from './lib/api'
 import { clearCache } from './lib/store'
 import { can, getMe, setMe } from './lib/session'
 import { Login } from './pages/Login'
@@ -16,7 +16,7 @@ import { startLive, stopLive, useLive } from './lib/live'
 import { Roles } from './pages/Roles'
 import { Audit } from './pages/Audit'
 import { DatabaseMigration } from './pages/DatabaseMigration'
-import { License } from './pages/License'
+import { License, LicenseOnboarding } from './pages/License'
 import { usePref } from './lib/prefs'
 import { go, href, useRoute } from './lib/router'
 import { ContextMenuProvider, useMenu } from './ui/ContextMenu'
@@ -324,14 +324,33 @@ function Shell({ onSessionLost }: { onSessionLost: () => void }) {
 export function App() {
   const route = useRoute()
   const [auth, setAuth] = useState<'checking' | 'in' | 'out'>('checking')
-  const check = () =>
-    api
-      .get<Me>('/auth/me')
-      .then((m) => (setMe(m), setAuth('in')))
-      .catch(() => (setMe(null), setAuth('out')))
+  const [needsLicenseOnboarding, setNeedsLicenseOnboarding] = useState(false)
+  const check = async () => {
+    try {
+      const m = await api.get<Me>('/auth/me')
+      setMe(m)
+      const isAdmin = m.permissions.includes('*') || m.permissions.includes('system.manage')
+      if (isAdmin) {
+        try {
+          const lic = await api.get<LicenseStatus>('/system/license')
+          setNeedsLicenseOnboarding(Boolean(lic.needs_onboarding))
+        } catch {
+          setNeedsLicenseOnboarding(false)
+        }
+      } else {
+        setNeedsLicenseOnboarding(false)
+      }
+      setAuth('in')
+    } catch {
+      setMe(null)
+      setNeedsLicenseOnboarding(false)
+      setAuth('out')
+    }
+  }
   const handleUnauthorized = () => {
     stopLive()
     setMe(null)
+    setNeedsLicenseOnboarding(false)
     clearCache()
     setAuth('out')
   }
@@ -347,7 +366,19 @@ export function App() {
         <>
           {auth === 'checking' && <div className="center page"><Spinner /></div>}
           {auth === 'out' && <Login onDone={() => check().then(() => toast.ok(t('Hello, {0}', getMe()?.user.display_name || getMe()?.user.username)))} />}
-          {auth === 'in' && <Shell onSessionLost={handleUnauthorized} />}
+          {auth === 'in' && needsLicenseOnboarding && (
+            <LicenseOnboarding
+              onDone={(skipped) => {
+                setNeedsLicenseOnboarding(false)
+                toast.ok(
+                  skipped
+                    ? t('Community Edition active. You can upgrade anytime in Administration → License.')
+                    : t('License activated'),
+                )
+              }}
+            />
+          )}
+          {auth === 'in' && !needsLicenseOnboarding && <Shell onSessionLost={handleUnauthorized} />}
         </>
       )}
       <OverlayHost />

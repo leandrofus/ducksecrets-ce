@@ -705,6 +705,8 @@ components:
           type: integer
         max_users:
           type: integer
+        needs_onboarding:
+          type: boolean
         org:
           type: string
         source:
@@ -717,6 +719,7 @@ components:
         - edition
         - valid
         - expired
+        - needs_onboarding
         - max_sites
         - used_sites
         - max_users
@@ -4699,6 +4702,44 @@ paths:
                 $ref: '#/components/schemas/Error'
           description: Not allowed (role, grant or missing CSRF header)
       summary: Activate offline license key
+      tags:
+        - system
+      x-permission: system.manage
+  /system/license/skip:
+    post:
+      description: |-
+        Marks initial license onboarding complete while keeping Community Edition active; admins can activate a commercial license later from the UI.
+
+        Requires the permission system.manage.
+      operationId: skipLicenseOnboarding
+      parameters:
+        - $ref: '#/components/parameters/CSRF'
+      responses:
+        "200":
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/LicenseStatus'
+          description: Community Edition active
+        "400":
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+          description: Invalid request
+        "401":
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+          description: Not authenticated
+        "403":
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+          description: Not allowed (role, grant or missing CSRF header)
+      summary: Skip commercial license onboarding (use Community Edition)
       tags:
         - system
       x-permission: system.manage

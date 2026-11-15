@@ -1168,6 +1168,28 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/system/license/skip": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * Skip commercial license onboarding (use Community Edition)
+         * @description Marks initial license onboarding complete while keeping Community Edition active; admins can activate a commercial license later from the UI.
+         *
+         *     Requires the permission system.manage.
+         */
+        post: operations["skipLicenseOnboarding"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/system/tls": {
         parameters: {
             query?: never;
@@ -1636,6 +1658,7 @@ export interface components {
             licensed_edition?: string;
             max_sites: number;
             max_users: number;
+            needs_onboarding: boolean;
             org?: string;
             source: string;
             used_sites: number;
@@ -5657,6 +5680,56 @@ export interface operations {
         requestBody?: never;
         responses: {
             /** @description Reverted Community license status */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["LicenseStatus"];
+                };
+            };
+            /** @description Invalid request */
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Error"];
+                };
+            };
+            /** @description Not authenticated */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Error"];
+                };
+            };
+            /** @description Not allowed (role, grant or missing CSRF header) */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Error"];
+                };
+            };
+        };
+    };
+    skipLicenseOnboarding: {
+        parameters: {
+            query?: never;
+            header: {
+                /** @description Any value. Required on every state-changing request. */
+                "X-Ducksecrets-Request": components["parameters"]["CSRF"];
+            };
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Community Edition active */
             200: {
                 headers: {
                     [name: string]: unknown;

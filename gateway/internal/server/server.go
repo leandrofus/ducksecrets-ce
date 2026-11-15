@@ -126,6 +126,7 @@ func (s *Server) Handler() http.Handler {
 	mux.Handle("POST /api/v1/system/database/migrate", s.userCan(auth.PermSystemManage, s.migrateDatabase))
 	mux.Handle("GET /api/v1/system/license", s.userSignedIn(s.getLicenseStatus))
 	mux.Handle("PUT /api/v1/system/license", s.userCan(auth.PermSystemManage, s.updateLicense))
+	mux.Handle("POST /api/v1/system/license/skip", s.userCan(auth.PermSystemManage, s.skipLicenseOnboarding))
 	mux.Handle("DELETE /api/v1/system/license", s.userCan(auth.PermSystemManage, s.deleteLicense))
 	mux.Handle("GET /api/v1/system/update", s.userCan(auth.PermSystemManage, s.getUpdateStatus))
 	mux.Handle("POST /api/v1/system/update", s.userCan(auth.PermSystemManage, s.applySystemUpdate))

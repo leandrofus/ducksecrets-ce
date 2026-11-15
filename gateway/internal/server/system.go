@@ -1,6 +1,8 @@
 package server
 
 import (
+	"database/sql"
+	"errors"
 	"fmt"
 	"net/http"
 	"strings"
@@ -154,7 +156,10 @@ func (s *Server) migrateDatabase(w http.ResponseWriter, r *http.Request, p princ
 	})
 }
 
-const licenseSettingKey = "license_token"
+const (
+	licenseSettingKey   = "license_token"
+	licenseOnboardedKey = "license_onboarded"
+)
 
 // openapi:schema LicenseFeature
 // type: object
@@ -168,12 +173,13 @@ const licenseSettingKey = "license_token"
 
 // openapi:schema LicenseStatus
 // type: object
-// required: [edition, valid, expired, max_sites, used_sites, max_users, features, catalog, source]
+// required: [edition, valid, expired, needs_onboarding, max_sites, used_sites, max_users, features, catalog, source]
 // properties:
 //   edition: { type: string }
 //   licensed_edition: { type: string }
 //   valid: { type: boolean }
 //   expired: { type: boolean }
+//   needs_onboarding: { type: boolean }
 //   customer: { type: string }
 //   org: { type: string }
 //   license_id: { type: string }
@@ -192,6 +198,7 @@ type licenseStatusDTO struct {
 	LicensedEdition string                `json:"licensed_edition,omitempty"`
 	Valid           bool                  `json:"valid"`
 	Expired         bool                  `json:"expired"`
+	NeedsOnboarding bool                  `json:"needs_onboarding"`
 	Customer        string                `json:"customer,omitempty"`
 	Org             string                `json:"org,omitempty"`
 	LicenseID       string                `json:"license_id,omitempty"`
@@ -229,11 +236,22 @@ func (s *Server) buildLicenseDTO(r *http.Request, p principal, st license.Status
 	if err != nil {
 		return licenseStatusDTO{}, fmt.Errorf("counting sites: %w", err)
 	}
+	isAdmin := p.User.ID != "" && auth.Has(p.Perms, auth.PermSystemManage)
+	needsOnboarding := false
+	if isAdmin && st.Source == "none" && !st.Valid && !st.Expired {
+		_, err := s.Store.Q.GetSystemSetting(r.Context(), licenseOnboardedKey)
+		if errors.Is(err, sql.ErrNoRows) {
+			needsOnboarding = true
+		} else if err != nil {
+			return licenseStatusDTO{}, fmt.Errorf("reading license onboarding state: %w", err)
+		}
+	}
 	dto := licenseStatusDTO{
 		Edition:         st.Edition,
 		LicensedEdition: st.LicensedEdition,
 		Valid:           st.Valid,
 		Expired:         st.Expired,
+		NeedsOnboarding: needsOnboarding,
 		MaxSites:        st.MaxSites,
 		UsedSites:       usedSites,
 		MaxUsers:        st.MaxUsers,
@@ -244,7 +262,7 @@ func (s *Server) buildLicenseDTO(r *http.Request, p principal, st license.Status
 		ExpiresAt:       st.ExpiresAt,
 		Error:           st.Error,
 	}
-	if p.User.ID != "" && auth.Has(p.Perms, auth.PermSystemManage) {
+	if isAdmin {
 		dto.Customer = st.Customer
 		dto.Org = st.Org
 		dto.LicenseID = st.LicenseID
@@ -290,12 +308,20 @@ func (s *Server) updateLicense(w http.ResponseWriter, r *http.Request, p princip
 	if err != nil {
 		return badRequest("invalid license: %v", err)
 	}
+	now := store.Now()
 	if err := s.Store.Q.UpsertSystemSetting(r.Context(), db.UpsertSystemSettingParams{
 		Key:       licenseSettingKey,
 		Value:     tok,
-		UpdatedAt: store.Now(),
+		UpdatedAt: now,
 	}); err != nil {
 		return fmt.Errorf("saving license: %w", err)
+	}
+	if err := s.Store.Q.UpsertSystemSetting(r.Context(), db.UpsertSystemSettingParams{
+		Key:       licenseOnboardedKey,
+		Value:     "licensed",
+		UpdatedAt: now,
+	}); err != nil {
+		return fmt.Errorf("saving license onboarding state: %w", err)
 	}
 	s.record(r, p, "system.license_updated", "system", "license", map[string]any{
 		"edition":    st.Edition,
@@ -326,6 +352,30 @@ func (s *Server) deleteLicense(w http.ResponseWriter, r *http.Request, p princip
 	mgr.Clear()
 	s.record(r, p, "system.license_removed", "system", "license", nil)
 	dto, err := s.buildLicenseDTO(r, p, mgr.Status())
+	if err != nil {
+		return err
+	}
+	return ok(w, dto)
+}
+
+// openapi:operation
+// summary: Skip commercial license onboarding (use Community Edition)
+// description: Marks initial license onboarding complete while keeping Community Edition active; admins can activate a commercial license later from the UI.
+// responses:
+//   '200': { description: Community Edition active, schema: LicenseStatus }
+
+func (s *Server) skipLicenseOnboarding(w http.ResponseWriter, r *http.Request, p principal) error {
+	if err := s.Store.Q.UpsertSystemSetting(r.Context(), db.UpsertSystemSettingParams{
+		Key:       licenseOnboardedKey,
+		Value:     license.EditionCommunity,
+		UpdatedAt: store.Now(),
+	}); err != nil {
+		return fmt.Errorf("saving license onboarding skip: %w", err)
+	}
+	s.record(r, p, "system.license_skipped", "system", "license", map[string]any{
+		"edition": license.EditionCommunity,
+	})
+	dto, err := s.buildLicenseDTO(r, p, s.licenseMgr().Status())
 	if err != nil {
 		return err
 	}
