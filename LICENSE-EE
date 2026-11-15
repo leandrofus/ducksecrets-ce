@@ -1,0 +1,31 @@
+DuckSecrets Enterprise / Commercial Edition License Notice (LICENSE-EE)
+
+Copyright (c) DuckSecrets Contributors. All rights reserved.
+
+DuckSecrets follows an Open-Core model:
+
+1. Open-Source Core (Apache License 2.0)
+   Unless otherwise noted, the DuckSecrets source code in this repository is
+   licensed under the Apache License, Version 2.0 (see the LICENSE file),
+   providing the Community Edition free of charge with:
+   - KV secrets, folders, versioning, diff, rollback, and interpolation
+   - Dynamic secret engines (PostgreSQL, MySQL, Redis, PAM) and leases
+   - Automated secret rotation and verification
+   - Tamper-evident HMAC-SHA256 audit log and verification
+   - Zero-knowledge E2EE ephemeral sharing
+   - Local / PAM authentication, RBAC roles, object grants, and project policies
+   - Scoped Service Tokens (dks_*) with CIDR allowlists and single-use mode
+   - Up to 2 Network Sites (reverse tunnel connectors)
+   - Embedded React UI and zero-config SQLite with live PostgreSQL migration
+
+2. Commercial Pro & Business Editions
+   Commercial entitlements, higher quotas (>2 Network Sites), and Enterprise
+   features gated behind `internal/license` (such as `sso.oidc`, `sso.saml`,
+   `sync.kubernetes`, `governance.approvals`, `vault.master_key_rotation`,
+   `vault.external_kms`, `audit.export`, and `sites.unlimited`) require a valid,
+   cryptographically signed commercial license token (`dkl1...`) issued by the
+   DuckSecrets copyright holder.
+
+   Bypassing, stripping, or forging license enforcement in commercial builds or
+   distributing unauthorized license keys is prohibited without written
+   authorization from the copyright holder.

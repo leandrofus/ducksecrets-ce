@@ -1,0 +1,63 @@
+# Production / End-User Docker Compose for DuckSecrets
+#
+# Quick start (SQLite + automatic self-signed HTTPS persisted in volume):
+#   docker compose up -d
+#
+# With PostgreSQL:
+#   DUCKSECRETS_DB=postgres://ducksecrets:ducksecrets@postgres:5432/ducksecrets?sslmode=disable \
+#   DUCKSECRETS_AUDIT_KEY=<64-hex-chars> \
+#   DUCKSECRETS_ENCRYPTION_KEY=<64-hex-chars> \
+#   docker compose --profile postgres up -d
+#
+# Behind a reverse proxy (Nginx / Caddy / Traefik terminating TLS):
+#   Set DUCKSECRETS_TLS_MODE=off and DUCKSECRETS_TRUSTED_PROXIES=127.0.0.1/8,10.0.0.0/8,172.16.0.0/12,192.168.0.0/16
+
+services:
+  ducksecrets:
+    image: ghcr.io/leandrofus/ducksecrets-ce:${DUCKSECRETS_VERSION:-latest}
+    restart: unless-stopped
+    ports:
+      - "${DUCKSECRETS_PORT:-8080}:8080"
+    environment:
+      DUCKSECRETS_LISTEN: 0.0.0.0:8080
+      DUCKSECRETS_DB: ${DUCKSECRETS_DB:-/data/ducksecrets.db}
+      DUCKSECRETS_TLS_MODE: ${DUCKSECRETS_TLS_MODE:-self-signed}
+      DUCKSECRETS_TLS_CERT: ${DUCKSECRETS_TLS_CERT:-/data/tls.crt}
+      DUCKSECRETS_TLS_KEY: ${DUCKSECRETS_TLS_KEY:-/data/tls.key}
+      DUCKSECRETS_TLS_HOSTS: ${DUCKSECRETS_TLS_HOSTS:-}
+      DUCKSECRETS_TRUSTED_PROXIES: ${DUCKSECRETS_TRUSTED_PROXIES:-}
+      DUCKSECRETS_SECURE_COOKIES: ${DUCKSECRETS_SECURE_COOKIES:-0}
+      DUCKSECRETS_ADMIN: ${DUCKSECRETS_ADMIN:-admin}
+      DUCKSECRETS_ADMIN_PASSWORD: ${DUCKSECRETS_ADMIN_PASSWORD:-}
+      DUCKSECRETS_AUDIT_KEY: ${DUCKSECRETS_AUDIT_KEY:-}
+      DUCKSECRETS_ENCRYPTION_KEY: ${DUCKSECRETS_ENCRYPTION_KEY:-}
+      DUCKSECRETS_LICENSE_KEY: ${DUCKSECRETS_LICENSE_KEY:-}
+      DUCKSECRETS_PUBLIC_URL: ${DUCKSECRETS_PUBLIC_URL:-}
+    volumes:
+      - ducksecrets_data:/data
+    healthcheck:
+      test: ["CMD-SHELL", "wget --no-check-certificate -qO- https://127.0.0.1:8080/api/v1/health >/dev/null 2>&1 || wget -qO- http://127.0.0.1:8080/api/v1/health >/dev/null 2>&1"]
+      interval: 15s
+      timeout: 5s
+      retries: 5
+      start_period: 10s
+
+  postgres:
+    image: postgres:17-alpine
+    profiles: ["postgres"]
+    restart: unless-stopped
+    environment:
+      POSTGRES_USER: ${POSTGRES_USER:-ducksecrets}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-ducksecrets}
+      POSTGRES_DB: ${POSTGRES_DB:-ducksecrets}
+    volumes:
+      - ducksecrets_pg:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U $${POSTGRES_USER:-ducksecrets} -d $${POSTGRES_DB:-ducksecrets}"]
+      interval: 5s
+      timeout: 5s
+      retries: 10
+
+volumes:
+  ducksecrets_data:
+  ducksecrets_pg:

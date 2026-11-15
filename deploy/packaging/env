@@ -1,0 +1,23 @@
+# Ducksecrets daemon configuration (/etc/ducksecrets/env)
+# Uncomment and edit as needed, then run: systemctl restart ducksecrets
+
+# Listen address (default 127.0.0.1:8080; use :8080 or :8443 for network access)
+DUCKSECRETS_LISTEN=0.0.0.0:8080
+
+# Database path (SQLite) or PostgreSQL DSN
+DUCKSECRETS_DB=/var/lib/ducksecrets/ducksecrets.db
+
+# Install-time self-signed TLS certificate (you can also upload a custom PEM
+# certificate from the Web UI under System / License -> TLS).
+# For reverse-proxy TLS termination (Nginx, Caddy, Traefik), set:
+#   DUCKSECRETS_TLS_MODE=off
+#   DUCKSECRETS_TRUSTED_PROXIES=127.0.0.1/8,::1/128
+DUCKSECRETS_TLS_MODE=auto
+DUCKSECRETS_TLS_CERT=/etc/ducksecrets/tls.crt
+DUCKSECRETS_TLS_KEY=/etc/ducksecrets/tls.key
+
+# Optional external master encryption key path
+# DUCKSECRETS_MASTER_KEY_FILE=/etc/ducksecrets/master.key
+
+# Optional offline commercial license token
+# DUCKSECRETS_LICENSE_KEY=

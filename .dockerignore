@@ -1,0 +1,12 @@
+.git
+.dev
+.claude
+data
+dist
+gateway/bin
+web/node_modules
+*.db
+*.db-wal
+*.db-shm
+*.audit-key
+*.encryption-key
