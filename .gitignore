@@ -1,0 +1,21 @@
+# build outputs
+/dist/
+/gateway/bin/
+/gateway/internal/server/ui/dist/*
+!/gateway/internal/server/ui/dist/.gitkeep
+node_modules/
+/.ducktpl/
+*.tsbuildinfo
+# duck:if site
+/site/dist/
+/site/.astro/
+# duck:end
+
+# local data (make dev)
+/.dev/
+/data/
+*.db
+*.db-shm
+*.db-wal
+*.audit-key
+*.encryption-key

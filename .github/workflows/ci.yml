@@ -1,0 +1,60 @@
+name: CI
+
+on:
+  workflow_dispatch:
+  push:
+    branches: [main, DEV]
+  pull_request:
+    branches: [main, DEV]
+
+permissions:
+  contents: read
+
+jobs:
+  check:
+    name: Quality Gate
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v5
+      - uses: actions/setup-go@v6
+        with:
+          go-version-file: gateway/go.mod
+          cache-dependency-path: gateway/go.sum
+      - uses: oven-sh/setup-bun@v2
+      - name: Bootstrap tool binaries & dependencies
+        run: |
+          make -C gateway bin/sqlc
+          (cd web && bun install --frozen-lockfile)
+      - name: Run check.sh pipeline (strict CI mode)
+        env:
+          CI: "1"
+        run: ./scripts/check.sh
+
+  postgres:
+    name: PostgreSQL Suite
+    runs-on: ubuntu-latest
+    services:
+      postgres:
+        image: postgres:17-alpine
+        env:
+          POSTGRES_USER: ducksecrets
+          POSTGRES_PASSWORD: ducksecrets
+          POSTGRES_DB: ducksecrets
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd="pg_isready -U ducksecrets -d ducksecrets"
+          --health-interval=5s
+          --health-timeout=5s
+          --health-retries=10
+    steps:
+      - uses: actions/checkout@v5
+      - uses: actions/setup-go@v6
+        with:
+          go-version-file: gateway/go.mod
+          cache-dependency-path: gateway/go.sum
+      - name: Run Go suites against PostgreSQL
+        working-directory: gateway
+        env:
+          DUCKSECRETS_TEST_POSTGRES: postgres://ducksecrets:ducksecrets@127.0.0.1:5432/ducksecrets?sslmode=disable
+        run: go test -count=1 ./internal/...

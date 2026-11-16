@@ -1,0 +1,64 @@
+name: ducksecrets
+arch: @ARCH@
+platform: linux
+version: @VERSION@
+section: utils
+priority: optional
+maintainer: Ducksecrets Authors <https://github.com/leandrofus/ducksecrets>
+description: |
+  Ducksecrets — Self-hosted secret management platform (CLI + daemon).
+  Lightweight single-binary alternative to Infisical / HashiCorp Vault with
+  AES-256-GCM envelope encryption, RBAC, dynamic credentials, and tamper-evident audit logs.
+homepage: https://github.com/leandrofus/ducksecrets
+license: Apache-2.0
+
+contents:
+  - src: @DIST_DIR@/ducksecrets-linux-@ARCH@
+    dst: /usr/bin/ducksecrets
+    file_info:
+      mode: 0755
+  - src: @DIST_DIR@/ducksecretsd-linux-@ARCH@
+    dst: /usr/bin/ducksecretsd
+    file_info:
+      mode: 0755
+  - src: deploy/packaging/ducksecrets.service
+    dst: /lib/systemd/system/ducksecrets.service
+    packager: deb
+    file_info:
+      mode: 0644
+  - src: deploy/packaging/ducksecrets.service
+    dst: /lib/systemd/system/ducksecrets.service
+    packager: rpm
+    file_info:
+      mode: 0644
+  - src: deploy/packaging/ducksecrets.service
+    dst: /usr/lib/systemd/system/ducksecrets.service
+    packager: archlinux
+    file_info:
+      mode: 0644
+  - src: deploy/packaging/env
+    dst: /etc/ducksecrets/env
+    type: config|noreplace
+    file_info:
+      mode: 0640
+  - src: LICENSE
+    dst: /usr/share/doc/ducksecrets/LICENSE
+    file_info:
+      mode: 0644
+  - src: README.md
+    dst: /usr/share/doc/ducksecrets/README.md
+    file_info:
+      mode: 0644
+  - src: deploy/nginx/ducksecrets.conf
+    dst: /usr/share/doc/ducksecrets/nginx.conf.example
+    file_info:
+      mode: 0644
+  - dst: /var/lib/ducksecrets
+    type: dir
+    file_info:
+      mode: 0750
+
+scripts:
+  postinstall: deploy/packaging/scripts/postinstall.sh
+  preremove: deploy/packaging/scripts/preremove.sh
+  postremove: deploy/packaging/scripts/postremove.sh

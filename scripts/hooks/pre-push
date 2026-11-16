@@ -1,0 +1,3 @@
+#!/usr/bin/env sh
+# Run project checks before pushing to any branch.
+exec ./scripts/check.sh
